@@ -9,7 +9,6 @@ on:
 jobs:
   convert:
     runs-on: ubuntu-latest
-    container: ghcr.io/osgeo/gdal:latest
 
     steps:
       - name: Checkout repo
@@ -17,14 +16,17 @@ jobs:
 
       - name: Convert CSV → GeoJSON
         run: |
-          ogr2ogr -f GeoJSON \
-            data/projekty.geojson \
-            data/projekty.csv \
-            -oo SEPARATOR=SEMICOLON \
-            -oo X_POSSIBLE_NAMES=Longitude \
-            -oo Y_POSSIBLE_NAMES=Latitude \
-            -oo KEEP_GEOM_COLUMNS=NO \
-            -a_srs EPSG:4326
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            ghcr.io/osgeo/gdal:latest \
+            ogr2ogr -f GeoJSON \
+              /work/data/projekty.geojson \
+              /work/data/projekty.csv \
+              -oo SEPARATOR=SEMICOLON \
+              -oo X_POSSIBLE_NAMES=Longitude \
+              -oo Y_POSSIBLE_NAMES=Latitude \
+              -oo KEEP_GEOM_COLUMNS=NO \
+              -a_srs EPSG:4326
 
       - name: Commit and push GeoJSON
         run: |
