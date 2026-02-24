@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "projekty",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{"type":"Feature","properties":{"Kód projektu":"PET_2022-042","Název projektu":"Petynka","Lokace":"Praha 6","Typologie":"Bytový dům","Stav":"DPS","Investor":"Geosan","Team":"ML, PB","Obrázek":"https://casuasro-my.sharepoint.com/:i:/g/personal/petr_spada_casua_cz/IQB3Ok_DXgenQ4lJ0uo3CX3ZAbHueGcJ2dw0Cxc3mY_kmd4?e=ZndVLU","Zahájení":"01/2022","Dokončení":"10/2028","Popis":"Re.Start Petynka nabízí 283 bytů ve vyladěných dispozicích. Od útulných jednopokojových 1 + KK, ideálních pro jednotlivce nebo mladé páry, až po prostorné byty 4 + KK, jako dělané pro rodiny s dětmi. Nejvíce jsou v projektu zastoupeny byty 2 + KK, které kombinují dostatek prostoru pro pohodlné bydlení s cenovou dostupností."},"geometry":{"type":"Point","coordinates":[14.3810814,50.0895089]}},
+{"type":"Feature","properties":{"Kód projektu":"SCS-OLOE_2021","Název projektu":"OLOE","Lokace":"Praha 5","Typologie":"Administrativní budova","Stav":"DPS","Investor":"ČEZ","Team":"ML, JR, PŠ","Obrázek":"","Zahájení":"03/2024","Dokončení":"06/2027","Popis":"BIM"},"geometry":{"type":"Point","coordinates":[14.4063372,50.0646719]}},
+{"type":"Feature","properties":{"Kód projektu":"1710127_25_SMZE","Název projektu":"Smíchovská žehlička","Lokace":"Praha 5","Typologie":"","Stav":"Studie","Investor":"","Team":"GJ","Obrázek":"","Zahájení":"-","Dokončení":"-","Popis":""},"geometry":{"type":"Point","coordinates":[14.3997075,50.0703778]}},
+{"type":"Feature","properties":{"Kód projektu":"1710111_25_SMK","Název projektu":"Šemíkův břeh","Lokace":"Praha 5","Typologie":"Komplex bytových domů","Stav":"DPZ","Investor":"","Team":"GK","Obrázek":"","Zahájení":"-","Dokončení":"-","Popis":"BIM"},"geometry":{"type":"Point","coordinates":[14.4115925,50.0653703]}},
+{"type":"Feature","properties":{"Kód projektu":"Ja35_21","Název projektu":"BD Jateční 35","Lokace":"Praha 7","Typologie":"Bytový dům","Stav":"Dokončené","Investor":"","Team":"JK","Obrázek":"jatecni_DJI_20260122161658_0002_D.JPG","Zahájení":"04/2020","Dokončení":"11/2026","Popis":"3D"},"geometry":{"type":"Point","coordinates":[14.4509217,50.1006911]}},
+{"type":"Feature","properties":{"Kód projektu":"PETR_2022-029","Název projektu":"Petrska 18","Lokace":"Praha 1","Typologie":"","Stav":"DPZ","Investor":"","Team":"PŠ","Obrázek":"","Zahájení":"-","Dokončení":"-","Popis":""},"geometry":{"type":"Point","coordinates":[14.4352078,50.0916433]}}
+]
+}
