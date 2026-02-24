@@ -21,11 +21,10 @@
             margin: 0;
         }
         </style>
-        <title></title>
+        <title>CASUA Map</title>
     </head>
     <body>
-        <div id="map">
-        </div>
+        <div id="map"></div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -40,13 +39,13 @@
         <script src="js/leaflet.photon.js"></script>
         <script src="js/leaflet-measure.js"></script>
         <script src="js/leaflet-search.js"></script>
-        <script src="data/CASUAprojekty_1.js"></script>
+        <!-- Removed static data/CASUAprojekty_1.js include; switched to dynamic fetch of ../data/projekty.geojson -->
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
         }).fitBounds([[50.06315323377361,14.400628825462636],[50.14089699580085,14.503081161119418]]);
         var hash = new L.Hash(map);
-        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> · <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> · <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
         // remove popup's row if "visible-with-data"
         function removeEmptyRowsFromPopupContent(content, feature) {
@@ -69,22 +68,17 @@
             var imgTd = tempDiv.querySelector('td img');
             if (imgTd) {
                 var src = imgTd.getAttribute('src');
-                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                if (/(\.(jpg|jpeg|png|gif|bmp|webp|avif))$/i.test(src)) {
                     popup._contentNode.classList.add('media');
-                    setTimeout(function() {
-                        popup.update();
-                    }, 10);
-                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    setTimeout(function() { popup.update(); }, 10);
+                } else if (/(\.(mp3|wav|ogg|aac))$/i.test(src)) {
                     var audio = document.createElement('audio');
                     audio.controls = true;
                     audio.src = src;
                     imgTd.parentNode.replaceChild(audio, imgTd);
                     popup._contentNode.classList.add('media');
-                    setTimeout(function() {
-                        popup.setContent(tempDiv.innerHTML);
-                        popup.update();
-                    }, 10);
-                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    setTimeout(function() { popup.setContent(tempDiv.innerHTML); popup.update(); }, 10);
+                } else if (/(\.(mp4|webm|ogg|mov))$/i.test(src)) {
                     var video = document.createElement('video');
                     video.controls = true;
                     video.src = src;
@@ -94,14 +88,8 @@
                     video.style.maxWidth = "60vw";
                     imgTd.parentNode.replaceChild(video, imgTd);
                     popup._contentNode.classList.add('media');
-                    // Aggiorna il popup quando il video carica i metadati
-                    video.addEventListener('loadedmetadata', function() {
-                        popup.update();
-                    });
-                    setTimeout(function() {
-                        popup.setContent(tempDiv.innerHTML);
-                        popup.update();
-                    }, 10);
+                    video.addEventListener('loadedmetadata', function() { popup.update(); });
+                    setTimeout(function() { popup.setContent(tempDiv.innerHTML); popup.update(); }, 10);
                 } else {
                     popup._contentNode.classList.remove('media');
                 }
@@ -109,22 +97,13 @@
                 popup._contentNode.classList.remove('media');
             }
         }
-        var zoomControl = L.control.zoom({
-            position: 'topleft'
-        }).addTo(map);
-        var measureControl = new L.Control.Measure({
-            position: 'topleft',
-            primaryLengthUnit: 'meters',
-            secondaryLengthUnit: 'kilometers',
-            primaryAreaUnit: 'sqmeters',
-            secondaryAreaUnit: 'hectares'
-        });
+        var zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
+        var measureControl = new L.Control.Measure({ position: 'topleft', primaryLengthUnit: 'meters', secondaryLengthUnit: 'kilometers', primaryAreaUnit: 'sqmeters', secondaryAreaUnit: 'hectares' });
         measureControl.addTo(map);
         document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
         document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
-        function setBounds() {
-        }
+        function setBounds() {}
         map.createPane('pane_OpenStreetMap_0');
         map.getPane('pane_OpenStreetMap_0').style.zIndex = 400;
         var layer_OpenStreetMap_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -136,239 +115,125 @@
             minNativeZoom: 0,
             maxNativeZoom: 19
         });
-        layer_OpenStreetMap_0;
         map.addLayer(layer_OpenStreetMap_0);
-        function pop_CASUAprojekty_1(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Kód projektu'] !== null ? autolinker.link(String(feature.properties['Kód projektu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Název projektu'] !== null ? autolinker.link(String(feature.properties['Název projektu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Lokace'] !== null ? autolinker.link(String(feature.properties['Lokace']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Typologie'] !== null ? autolinker.link(String(feature.properties['Typologie']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Stav'] !== null ? autolinker.link(String(feature.properties['Stav']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Investor'] !== null ? autolinker.link(String(feature.properties['Investor']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Team'] !== null ? autolinker.link(String(feature.properties['Team']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Obrázek'] !== null ? autolinker.link(String(feature.properties['Obrázek']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Zahájení'] !== null ? autolinker.link(String(feature.properties['Zahájení']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Dokončení'] !== null ? autolinker.link(String(feature.properties['Dokončení']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Popis'] !== null ? autolinker.link(String(feature.properties['Popis']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
 
+        // --- Original pop_ function kept but unused to avoid default table popup ---
+        function pop_CASUAprojekty_1(feature, layer) {}
+
+        // --- Style functions copied from original export ---
         function style_CASUAprojekty_1_0(feature) {
             switch(String(feature.properties['Typologie'])) {
                 case 'Bytový dům':
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/CASUAprojekty_1.svg',
-            iconSize: [114.0, 114.0]
-        }),
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', rotationAngle: 0.0, rotationOrigin: 'center center', icon: L.icon({ iconUrl: 'markers/CASUAprojekty_1.svg', iconSize: [114.0, 114.0] }), interactive: true };
                 case 'Administrativní budova':
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/CASUAprojekty_1.svg',
-            iconSize: [114.0, 114.0]
-        }),
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', rotationAngle: 0.0, rotationOrigin: 'center center', icon: L.icon({ iconUrl: 'markers/CASUAprojekty_1.svg', iconSize: [114.0, 114.0] }), interactive: true };
                 default:
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/CASUAprojekty_1.svg',
-            iconSize: [114.0, 114.0]
-        }),
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', rotationAngle: 0.0, rotationOrigin: 'center center', icon: L.icon({ iconUrl: 'markers/CASUAprojekty_1.svg', iconSize: [114.0, 114.0] }), interactive: true };
             }
         }
         function style_CASUAprojekty_1_1(feature) {
             switch(String(feature.properties['Typologie'])) {
                 case 'Bytový dům':
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-                radius: 22.0,
-                opacity: 1,
-                color: 'rgba(128,17,25,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(63,195,212,1.0)',
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', radius: 22.0, opacity: 1, color: 'rgba(128,17,25,1.0)', dashArray: '', lineCap: 'butt', lineJoin: 'miter', weight: 2.0, fill: true, fillOpacity: 1, fillColor: 'rgba(63,195,212,1.0)', interactive: true };
                 case 'Administrativní budova':
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-                radius: 22.0,
-                opacity: 1,
-                color: 'rgba(128,17,25,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(204,60,187,1.0)',
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', radius: 22.0, opacity: 1, color: 'rgba(128,17,25,1.0)', dashArray: '', lineCap: 'butt', lineJoin: 'miter', weight: 2.0, fill: true, fillOpacity: 1, fillColor: 'rgba(204,60,187,1.0)', interactive: true };
                 default:
-                    return {
-                pane: 'pane_CASUAprojekty_1',
-                radius: 22.0,
-                opacity: 1,
-                color: 'rgba(128,17,25,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 2.0,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(222,234,133,1.0)',
-                interactive: true,
-            }
-                    break;
+                    return { pane: 'pane_CASUAprojekty_1', radius: 22.0, opacity: 1, color: 'rgba(128,17,25,1.0)', dashArray: '', lineCap: 'butt', lineJoin: 'miter', weight: 2.0, fill: true, fillOpacity: 1, fillColor: 'rgba(222,234,133,1.0)', interactive: true };
             }
         }
         map.createPane('pane_CASUAprojekty_1');
         map.getPane('pane_CASUAprojekty_1').style.zIndex = 401;
         map.getPane('pane_CASUAprojekty_1').style['mix-blend-mode'] = 'normal';
-        var layer_CASUAprojekty_1 = new L.geoJson.multiStyle(json_CASUAprojekty_1, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_CASUAprojekty_1',
-            layerName: 'layer_CASUAprojekty_1',
-            pane: 'pane_CASUAprojekty_1',
-            onEachFeature: pop_CASUAprojekty_1,
-            pointToLayers: [function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_CASUAprojekty_1_0(feature));
-            },function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_CASUAprojekty_1_1(feature));
-            },
-        ]});
-        bounds_group.addLayer(layer_CASUAprojekty_1);
-        map.addLayer(layer_CASUAprojekty_1);
+
+        // --- Pretty popup (photo left, text right) ---
+        function createCasuaPopup(p){
+          const fotoHtml = (p["Obrázek"] && p["Obrázek"] !== "")
+            ? `<img src="${p["Obrázek"]}" style="max-width:180px;border:1px solid #ddd;border-radius:6px;">`
+            : `<div style="width:180px;height:100px;background:#f0f0f0;border-radius:6px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;color:#777;font-size:12px;">bez obrázku</div>`;
+          const popis = (p["Popis"]||"").replace(/\n/g,"<br>");
+          return `
+            <div style="display:flex;gap:16px;align-items:flex-start;font-family:Arial;max-width:520px;">
+              <div style="flex:0 0 180px;">${fotoHtml}</div>
+              <div style="flex:1;font-size:14px;line-height:1.45;">
+                <h2 style=\"margin:0 0 6px 0;font-size:18px;\">${p["Název projektu"]||""}</h2>
+                <div><strong>Kód projektu:</strong> ${p["Kód projektu"]||""}</div>
+                <div><strong>Lokace:</strong> ${p["Lokace"]||""}</div>
+                <div><strong>Typologie:</strong> ${p["Typologie"]||""}</div>
+                <div><strong>Stav:</strong> ${p["Stav"]||""}</div>
+                <div><strong>Investor:</strong> ${p["Investor"]||""}</div>
+                <div><strong>Tým:</strong> ${p["Team"]||""}</div>
+                <div><strong>Zahájení:</strong> ${p["Zahájení"]||""}</div>
+                <div><strong>Dokončení:</strong> ${p["Dokončení"]||""}</div>
+                <p style=\"margin-top:8px;\"><strong>Popis:</strong><br>${popis}</p>
+              </div>
+            </div>`;
+        }
+        function applyCasuaPopup(layer){
+          layer.eachLayer(function(lyr){
+            if(!lyr.feature) return;
+            var p = lyr.feature.properties || {};
+            lyr.bindPopup(createCasuaPopup(p), {maxWidth: 520});
+          });
+        }
+
+        // --- Dynamic data fetch ---
+        var layer_CASUAprojekty_1; // will be created after fetch
+        const DATA_URL = '../data/projekty.geojson?cb=' + Date.now();
+        fetch(DATA_URL)
+          .then(function(resp){ if(!resp.ok) throw new Error('Nelze načíst GeoJSON: '+resp.status); return resp.json(); })
+          .then(function(geojson){
+            layer_CASUAprojekty_1 = new L.geoJson.multiStyle(geojson, {
+              attribution: '', interactive:true, dataVar:'json_CASUAprojekty_1', layerName:'layer_CASUAprojekty_1', pane:'pane_CASUAprojekty_1',
+              onEachFeature: function(f,lyr){},
+              pointToLayers: [
+                function(feature,latlng){ return L.circleMarker(latlng, style_CASUAprojekty_1_0(feature)); },
+                function(feature,latlng){ return L.circleMarker(latlng, style_CASUAprojekty_1_1(feature)); }
+              ]
+            });
+            bounds_group.addLayer(layer_CASUAprojekty_1);
+            map.addLayer(layer_CASUAprojekty_1);
+            try { map.fitBounds(layer_CASUAprojekty_1.getBounds()); } catch(e) {}
+            // Apply pretty popup
+            applyCasuaPopup(layer_CASUAprojekty_1);
+
+            // Add Search control once layer exists
+            map.addControl(new L.Control.Search({
+              layer: layer_CASUAprojekty_1,
+              initial: false,
+              hideMarkerOnCollapse: true,
+              propertyName: 'Název projektu'
+            }));
+          })
+          .catch(function(err){ console.error(err); });
+
+        // --- Photon geocoder (left as in original) ---
         const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
-        "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
-        var photonControl = L.control.photon({
-            url: url["Nominatim OSM"],
-            feedbackLabel: '',
-            position: 'topleft',
-            includePosition: true,
-            initial: true,
-            // resultsHandler: myHandler,
-        }).addTo(map);
-        photonControl._container.childNodes[0].style.borderRadius="10px"
-        // Create a variable to store the geoJSON data
-        var x = null;
-        // Create a variable to store the marker
-        var marker = null;
-        // Add an event listener to the Photon control to create a marker from the returned geoJSON data
-        var z = null;
+                      "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
+        var photonControl = L.control.photon({ url: url["Nominatim OSM"], feedbackLabel: '', position: 'topleft', includePosition: true, initial: true }).addTo(map);
+        photonControl._container.childNodes[0].style.borderRadius="10px";
+        var x = null; var marker = null; var z = null;
         photonControl.on('selected', function(e) {
-            console.log(photonControl.search.resultsContainer);
-            if (x != null) {
-                map.removeLayer(obj3.marker);
-                map.removeLayer(x);
-            }
-            obj2.gcd = e.choice;
-            x = L.geoJSON(obj2.gcd).addTo(map);
+            if (x != null) { map.removeLayer(obj3.marker); map.removeLayer(x); }
+            obj2.gcd = e.choice; x = L.geoJSON(obj2.gcd).addTo(map);
             var label = typeof obj2.gcd.properties.label === 'undefined' ? obj2.gcd.properties.display_name : obj2.gcd.properties.label;
             obj3.marker = L.marker(x.getLayers()[0].getLatLng()).bindPopup(label).addTo(map);
             map.setView(x.getLayers()[0].getLatLng(), 17);
             z = typeof e.choice.properties.label === 'undefined'? e.choice.properties.display_name : e.choice.properties.label;
-            console.log(e);
             e.target.input.value = z;
         });
         var search = document.getElementsByClassName("leaflet-photon leaflet-control")[0];
-        search.classList.add("leaflet-control-search")
+        search.classList.add("leaflet-control-search");
         search.style.display = "flex";
-        search.style.backgroundColor="rgba(255,255,255,0.5)" 
-
-        // Create the new button element
+        search.style.backgroundColor = "rgba(255,255,255,0.5)";
         var button = document.createElement("div");
         button.id = "gcd-button-control";
         button.className = "gcd-gl-btn fa fa-search search-button";
-
-        // Insert the button at the beginning of the search control
         search.insertBefore(button, search.firstChild);
-        last = search.lastChild;
+        var last = search.lastChild;
         last.style.display = "none";
-        button.addEventListener("click", function (e) {
-            if (last.style.display === "none") {
-                last.style.display = "block";
-            } else {
-                last.style.display = "none";
-            }
-        });
+        button.addEventListener("click", function(){ last.style.display = (last.style.display === "none") ? "block" : "none"; });
+
         setBounds();
-        map.addControl(new L.Control.Search({
-            layer: layer_CASUAprojekty_1,
-            initial: false,
-            hideMarkerOnCollapse: true,
-            propertyName: 'Název projektu'}));
-        if (typeof url === 'undefined') {
-            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
-        } else {
-            document.getElementsByClassName('search-button')[1].className += ' fa fa-binoculars';
-        }
-        </script>        
+        </script>
     </body>
 </html>
