@@ -179,12 +179,12 @@
     // --- Pretty popup (photo left, text right) ---
     function createCasuaPopup(p){
       const fotoHtml = (p["Obrázek"] && p["Obrázek"] !== "")
-        ? `<img src="${p["Obrázek"]}" style="max-width:180px;border:1px solid #ddd;border-radius:6px;">`
-        : `<div style="width:180px;height:100px;background:#f0f0f0;border-radius:6px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;color:#777;font-size:12px;">bez obrázku</div>`;
+        ? `<img src="${p["Obrázek"]}" style="max-width:360px;border:1px solid #ddd;border-radius:6px;">`
+        : `<div style="width:360px;height:100px;background:#f0f0f0;border-radius:6px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;color:#777;font-size:12px;">bez obrázku</div>`;
       const popis = (p["Popis"] || "").replace(/\n/g,"<br>");
       return `
         <div style="display:flex;gap:16px;align-items:flex-start;font-family:Arial;max-width:520px;">
-          <div style="flex:0 0 180px;">${fotoHtml}</div>
+          <div style="flex:0 0 360px;">${fotoHtml}</div>
           <div style="flex:1;font-size:14px;line-height:1.45;">
             <h2 style="margin:0 0 6px 0;font-size:18px;">${p["Název projektu"] || ""}</h2>
             <div><strong>Kód projektu:</strong> ${p["Kód projektu"] || ""}</div>
