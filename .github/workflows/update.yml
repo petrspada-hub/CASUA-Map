@@ -16,7 +16,7 @@ jobs:
       - name: Convert CSV → GeoJSON
         uses: addnab/docker-run-action@v3
         with:
-          image: osgeo/gdal:ubuntu-small-3.8.5
+          image: osgeo/gdal:ubuntu-small-3.7.0
           options: -v ${{ github.workspace }}:/work
           run: |
             ogr2ogr -f GeoJSON \
