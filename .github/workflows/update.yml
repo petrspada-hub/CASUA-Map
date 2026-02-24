@@ -9,10 +9,11 @@ on:
 jobs:
   convert:
     runs-on: ubuntu-latest
-    container: osgeo/gdal:ubuntu-small-latest
+    container: ghcr.io/osgeo/gdal:latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Convert CSV → GeoJSON
         run: |
