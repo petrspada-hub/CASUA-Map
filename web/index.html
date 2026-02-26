@@ -176,24 +176,26 @@
     map.getPane('pane_CASUAprojekty_1').style.zIndex = 401;
     map.getPane('pane_CASUAprojekty_1').style['mix-blend-mode'] = 'normal';
 
-    // --- Pretty popup (photo left, text right) ---
-    function createCasuaPopup(p){
+    // --- Pretty popup ---
+    function createCasuaPopup(p) {
 
-        // Helper – zobrazí jen pokud existuje
-        function row(label, value) {
+        function field(label, value) {
             if (!value || value === "") return "";
-            return `<div style="margin:2px 0;"><strong>${label}:</strong> ${value}</div>`;
+            return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
         }
 
-        // Obrázek – přes celou šířku
-        const fotoHtml = (p["Obrázek"] && p["Obrázek"] !== "")
-            ? `<img src="${p["Obrázek"]}" style="width:100%;border-radius:6px;border:1px solid #ddd;margin-bottom:10px;">`
-            : ``;
+        let fotoHtml = "";
+        if (p["Obrázek"] && p["Obrázek"] !== "") {
+            fotoHtml = `
+                <img src="${p["Obrázek"]}" 
+                     style="width:100%; max-width:100%; border-radius:6px; margin-bottom:10px;">
+            `;
+        }
 
-        const popis = (p["Popis"] || "").replace(/\n/g, "<br>");
+        const popis = p["Popis"] ? p["Popis"].replace(/\n/g, "<br>") : "";
 
         return `
-            <div style="font-family:Arial; font-size:14px; line-height:1.45; max-width:420px;">
+            <div style="font-family:Arial; font-size:14px; max-width:420px; line-height:1.45;">
 
                 <h2 style="margin:0 0 10px 0; font-size:20px;">
                     ${p["Název projektu"] || ""}
@@ -201,21 +203,20 @@
 
                 ${fotoHtml}
 
-                ${row("Kód projektu", p["Kód projektu"])}
-                ${row("Lokace", p["Lokace"])}
-                ${row("Typologie", p["Typologie"])}
-                ${row("Stav", p["Stav"])}
-                ${row("Investor", p["Investor"])}
-                ${row("Tým", p["Team"])}
-                ${row("Zahájení", p["Zahájení"])}
-                ${row("Dokončení", p["Dokončení"])}
+                ${field("Kód projektu", p["Kód projektu"])}
+                ${field("Lokace", p["Lokace"])}
+                ${field("Typologie", p["Typologie"])}
+                ${field("Stav", p["Stav"])}
+                ${field("Investor", p["Investor"])}
+                ${field("Tým", p["Team"])}
+                ${field("Zahájení", p["Zahájení"])}
+                ${field("Dokončení", p["Dokončení"])}
 
-                ${ popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : "" }
-
+                ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
             </div>
         `;
     }
-
+      
     // --- Dynamic data fetch ---
     var layer_CASUAprojekty_1; // will be created after fetch
     const DATA_URL = '../data/projekty.geojson?cb=' + Date.now();
