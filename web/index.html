@@ -1,42 +1,66 @@
 <!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-  <link rel="stylesheet" href="css/leaflet.css">
-  <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
-  <link rel="stylesheet" href="css/qgis2web.css">
-  <link rel="stylesheet" href="css/fontawesome-all.min.css">
-  <link rel="stylesheet" href="css/leaflet-search.css">
-  <link rel="stylesheet" href="css/leaflet.photon.css">
-  <link rel="stylesheet" href="css/leaflet-measure.css">
-  <style>
-    html, body, #map {
-      width: 100%;
-      height: 100%;
-      padding: 0;
-      margin: 0;
-    }
-  </style>
-  <title>CASUA Map</title>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+<link rel="stylesheet" href="css/leaflet.css">
+<link rel="stylesheet" href="css/leaflet-search.css">
+<link rel="stylesheet" href="css/leaflet.photon.css">
+<link rel="stylesheet" href="css/leaflet-measure.css">
+
+<style>
+html, body, #map {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Pevný rozměr popupu */
+.leaflet-popup-content {
+  margin: 0;
+}
+
+.casua-popup {
+  width: 420px;
+  height: 500px;
+  overflow-y: auto;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.casua-popup img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+</style>
+
+<title>CASUA Map</title>
 </head>
 <body>
 <div id="map"></div>
 
 <script src="js/leaflet.js"></script>
 <script src="js/leaflet-search.js"></script>
-<script src="js/leaflet.photon.js"></script>
-<script src="js/leaflet-measure.js"></script>
 
 <script>
-var map = L.map('map', {
-  zoomControl:true,
-  maxZoom:28,
-  minZoom:1
-}).fitBounds([[50.06315,14.40062],[50.14089,14.50308]]);
+/* ===== NASTAVITELNÉ PARAMETRY ===== */
+
+const POPUP_WIDTH = 420;      // šířka popupu v px
+const POPUP_HEIGHT = 500;     // výška popupu v px
+const IMAGE_MAX_HEIGHT = 260; // max výška obrázku v px
+const PIN_SIZE = 90;          // velikost pinu (px)
+
+/* =================================== */
+
+var map = L.map('map', { maxZoom:28, minZoom:1 })
+  .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
+  maxZoom:19
 }).addTo(map);
 
 /* ===== IKONY ===== */
@@ -67,13 +91,11 @@ const TYPO_TO_KEY = {
 
 function getIconByTypologie(typologie) {
   const key = TYPO_TO_KEY[typologie] || 'ostatni';
-  const file = ICON_FILES[key];
-  const size = [60, 60];
   return L.icon({
-    iconUrl: 'icons/' + file,
-    iconSize: size,
-    iconAnchor: [30, 30],
-    popupAnchor: [0, -20]
+    iconUrl: 'icons/' + ICON_FILES[key],
+    iconSize: [PIN_SIZE, PIN_SIZE],
+    iconAnchor: [PIN_SIZE/2, PIN_SIZE/2],
+    popupAnchor: [0, -(PIN_SIZE*0.35)]
   });
 }
 
@@ -88,17 +110,15 @@ function createCasuaPopup(p) {
 
   let fotoHtml = "";
   if (p["Obrázek"]) {
-    fotoHtml = `
-      <img src="${p["Obrázek"]}" 
-           style="width:100%; border-radius:6px; margin-bottom:10px;">
-    `;
+    fotoHtml = `<img src="${p["Obrázek"]}">`;
   }
 
   const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
 
   return `
-    <div style="font-family:Arial; font-size:14px; max-width:420px; line-height:1.45;">
-      <h2 style="margin:0 0 10px 0; font-size:20px;">
+    <div class="casua-popup" 
+         style="width:${POPUP_WIDTH}px;height:${POPUP_HEIGHT}px;">
+      <h2 style="margin:0 0 10px 0;">
         ${p["Název projektu"] || ""}
       </h2>
       ${fotoHtml}
@@ -117,36 +137,29 @@ function createCasuaPopup(p) {
 
 /* ===== DATA ===== */
 
-const DATA_URL = '../data/projekty.geojson?cb=' + Date.now();
-
-fetch(DATA_URL)
+fetch('../data/projekty.geojson?cb=' + Date.now())
   .then(r => r.json())
   .then(geojson => {
 
     const layer = L.geoJSON(geojson, {
 
       pointToLayer: function(feature, latlng) {
-        const typ = feature.properties?.["Typologie"];
         return L.marker(latlng, {
-          icon: getIconByTypologie(typ)
+          icon: getIconByTypologie(feature.properties?.["Typologie"])
         });
       },
 
       onEachFeature: function(feature, layer) {
         if (feature.properties) {
-          layer.bindPopup(createCasuaPopup(feature.properties));
+          layer.bindPopup(createCasuaPopup(feature.properties), {
+            maxWidth: POPUP_WIDTH + 40
+          });
         }
       }
 
     }).addTo(map);
 
     try { map.fitBounds(layer.getBounds()); } catch(e){}
-
-    map.addControl(new L.Control.Search({
-      layer: layer,
-      propertyName: 'Název projektu',
-      hideMarkerOnCollapse: true
-    }));
 
   })
   .catch(err => console.error(err));
