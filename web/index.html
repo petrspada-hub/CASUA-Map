@@ -1,11 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="cs">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="css/leaflet.css">
   <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
   <link rel="stylesheet" href="css/qgis2web.css">
@@ -24,265 +21,136 @@
   <title>CASUA Map</title>
 </head>
 <body>
-  <div id="map"></div>
-  <script src="js/qgis2web_expressions.js"></script>
-  <script src="js/leaflet.js"></script>
-  <script src="js/L.Control.Layers.Tree.min.js"></script>
-  <script src="js/multi-style-layer.js"></script>
-  <script src="js/leaflet.rotatedMarker.js"></script>
-  <script src="js/leaflet.pattern.js"></script>
-  <script src="js/leaflet-hash.js"></script>
-  <script src="js/Autolinker.min.js"></script>
-  <script src="js/rbush.min.js"></script>
-  <script src="js/labelgun.min.js"></script>
-  <script src="js/labels.js"></script>
-  <script src="js/leaflet.photon.js"></script>
-  <script src="js/leaflet-measure.js"></script>
-  <script src="js/leaflet-search.js"></script>
-  <!-- Removed static data/CASUAprojekty_1.js include; switched to dynamic fetch of ../data/projekty.geojson -->
-  <script>
-    var map = L.map('map', {
-      zoomControl:false, maxZoom:28, minZoom:1
-    }).fitBounds([[50.06315323377361,14.400628825462636],[50.14089699580085,14.503081161119418]]);
-    var hash = new L.Hash(map);
-    map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> · <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> · <a href="https://qgis.org">QGIS</a>');
-    var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+<div id="map"></div>
 
-    // remove popup's row if "visible-with-data"
-    function removeEmptyRowsFromPopupContent(content, feature) {
-      var tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      var rows = tempDiv.querySelectorAll('tr');
-      for (var i = 0; i < rows.length; i++) {
-        var td = rows[i].querySelector('td.visible-with-data');
-        var key = td ? td.id : '';
-        if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-          rows[i].parentNode.removeChild(rows[i]);
-        }
-      }
-      return tempDiv.innerHTML;
-    }
+<script src="js/leaflet.js"></script>
+<script src="js/leaflet-search.js"></script>
+<script src="js/leaflet.photon.js"></script>
+<script src="js/leaflet-measure.js"></script>
 
-    // modify popup if contains media
-    function addClassToPopupIfMedia(content, popup) {
-      var tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      var imgTd = tempDiv.querySelector('td img');
-      if (imgTd) {
-        var src = imgTd.getAttribute('src');
-        if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
-          popup._contentNode.classList.add('media');
-          setTimeout(function() { popup.update(); }, 10);
-        } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
-          var audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = src;
-          imgTd.parentNode.replaceChild(audio, imgTd);
-          popup._contentNode.classList.add('media');
-          setTimeout(function() { popup.setContent(tempDiv.innerHTML); popup.update(); }, 10);
-        } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
-          var video = document.createElement('video');
-          video.controls = true;
-          video.src = src;
-          video.style.width = "400px";
-          video.style.height = "300px";
-          video.style.maxHeight = "60vh";
-          video.style.maxWidth = "60vw";
-          imgTd.parentNode.replaceChild(video, imgTd);
-          popup._contentNode.classList.add('media');
-          video.addEventListener('loadedmetadata', function() { popup.update(); });
-          setTimeout(function() { popup.setContent(tempDiv.innerHTML); popup.update(); }, 10);
-        } else {
-          popup._contentNode.classList.remove('media');
-        }
-      } else {
-        popup._contentNode.classList.remove('media');
-      }
-    }
+<script>
+var map = L.map('map', {
+  zoomControl:true,
+  maxZoom:28,
+  minZoom:1
+}).fitBounds([[50.06315,14.40062],[50.14089,14.50308]]);
 
-    var zoomControl = L.control.zoom({ position: 'topleft' }).addTo(map);
-    var measureControl = new L.Control.Measure({ position: 'topleft', primaryLengthUnit: 'meters', secondaryLengthUnit: 'kilometers', primaryAreaUnit: 'sqmeters', secondaryAreaUnit: 'hectares' });
-    measureControl.addTo(map);
-    document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
-    document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
-    var bounds_group = new L.featureGroup([]);
-    function setBounds() {}
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
 
-    map.createPane('pane_OpenStreetMap_0');
-    map.getPane('pane_OpenStreetMap_0').style.zIndex = 400;
+/* ===== IKONY ===== */
 
-    var layer_OpenStreetMap_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      pane: 'pane_OpenStreetMap_0',
-      opacity: 1.0,
-      attribution: '',
-      minZoom: 1,
-      maxZoom: 28,
-      minNativeZoom: 0,
-      maxNativeZoom: 19
-    });
-    map.addLayer(layer_OpenStreetMap_0);
+const ICON_FILES = {
+  'bydleni': 'pin_bydleni.png',
+  'administrativa': 'pin_administrativa.png',
+  'kultura': 'pin_kultura.png',
+  'zdravotnictvi': 'pin_zdravotnictvi.png',
+  'ostatni': 'pin_ostatni.png',
+  'polyfunkce': 'pin_polyfunkce.png',
+  'prumysl': 'pin_prumysl.png',
+  'urbanismus': 'pin_urbanismus.png',
+  'vzdelavani': 'pin_vzdelavani.png'
+};
 
-    // --- Original pop_ function kept but unused to avoid default table popup ---
-    function pop_CASUAprojekty_1(feature, layer) {}
+const TYPO_TO_KEY = {
+  'Bydlení': 'bydleni',
+  'Administrativa': 'administrativa',
+  'Kultura': 'kultura',
+  'Zdravotnictví': 'zdravotnictvi',
+  'Ostatní': 'ostatni',
+  'Polyfunkce': 'polyfunkce',
+  'Průmysl': 'prumysl',
+  'Urbanismus a veřejný prostor': 'urbanismus',
+  'Vzdělávání': 'vzdelavani'
+};
 
-    // ====== NOVÉ: ikony pro body místo původních markerů ======
-    // Ikonky (ve složce web/icons → z indexu relativně "icons/...")
-    const ICON_FILES = {
-      'bydleni': 'pin_bydleni.png',
-      'administrativa': 'pin_administrativa.png',
-      'kultura': 'pin_kultura.png',
-      'zdravotnictvi': 'pin_zdravotnictvi.png',
-      'ostatni': 'pin_ostatni.png',
-      'polyfunkce': 'pin_polyfunkce.png',
-      'prumysl': 'pin_prumysl.png',
-      'urbanismus': 'pin_urbanismus.png',
-      'vzdelavani': 'pin_vzdelavani.png'
-    };
+function getIconByTypologie(typologie) {
+  const key = TYPO_TO_KEY[typologie] || 'ostatni';
+  const file = ICON_FILES[key];
+  const size = [60, 60];
+  return L.icon({
+    iconUrl: 'icons/' + file,
+    iconSize: size,
+    iconAnchor: [30, 30],
+    popupAnchor: [0, -20]
+  });
+}
 
-    // Mapování textové "Typologie" → klíč v ICON_FILES
-    const TYPO_TO_KEY = {
-      'Bydlení': 'bydleni',
-      'Administrativa': 'administrativa',
-      'Kultura': 'kultura',
-      'Zdravotnictví': 'zdravotnictvi',
-      'Ostatní': 'ostatni',
-      'Polyfunkce': 'polyfunkce',
-      'Průmysl': 'prumysl',
-      'Urbanismus a veřejný prostor': 'urbanismus',
-      'Vzdělávání': 'vzdelavani'
-    };
-    
-    function getIconByTypologie(typologie) {
-      const key = TYPO_TO_KEY[typologie] || 'ostatni';
-      const file = ICON_FILES[key] || ICON_FILES['ostatni'];
+/* ===== POPUP ===== */
 
-      // ZVOL požadovanou velikost ikony (px)
-      const size = [125, 125]; 
+function createCasuaPopup(p) {
 
-      // STŘED OBRÁZKU = STŘED BODU
-      const anchor = [size[0] / 2, size[1] / 2];
+  function field(label, value) {
+    if (!value) return "";
+    return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
+  }
 
-      return L.icon({
-        iconUrl: `icons/${file}`,
-        iconSize: size,
-        iconAnchor: anchor,
-        // Popup nad středem (lehce výš, ať nezakrývá ikonu)
-        popupAnchor: [0, - (size[1] * 0.35)]
-      });
-    }
-    // ====== /NOVÉ ======
+  let fotoHtml = "";
+  if (p["Obrázek"]) {
+    fotoHtml = `
+      <img src="${p["Obrázek"]}" 
+           style="width:100%; border-radius:6px; margin-bottom:10px;">
+    `;
+  }
 
-    map.createPane('pane_CASUAprojekty_1');
-    map.getPane('pane_CASUAprojekty_1').style.zIndex = 401;
-    map.getPane('pane_CASUAprojekty_1').style['mix-blend-mode'] = 'normal';
+  const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
 
-    // --- Pretty popup ---
-    function createCasuaPopup(p) {
+  return `
+    <div style="font-family:Arial; font-size:14px; max-width:420px; line-height:1.45;">
+      <h2 style="margin:0 0 10px 0; font-size:20px;">
+        ${p["Název projektu"] || ""}
+      </h2>
+      ${fotoHtml}
+      ${field("Kód projektu", p["Kód projektu"])}
+      ${field("Lokace", p["Lokace"])}
+      ${field("Typologie", p["Typologie"])}
+      ${field("Stav", p["Stav"])}
+      ${field("Investor", p["Investor"])}
+      ${field("Tým", p["Team"])}
+      ${field("Zahájení", p["Zahájení"])}
+      ${field("Dokončení", p["Dokončení"])}
+      ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
+    </div>
+  `;
+}
 
-        function field(label, value) {
-            if (!value || value === "") return "";
-            return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
-        }
+/* ===== DATA ===== */
 
-        let fotoHtml = "";
-        if (p["Obrázek"] && p["Obrázek"] !== "") {
-            fotoHtml = `
-                <img src="${p["Obrázek"]}" 
-                     style="width:100%; max-width:100%; border-radius:6px; margin-bottom:10px;">
-            `;
-        }
+const DATA_URL = '../data/projekty.geojson?cb=' + Date.now();
 
-        const popis = p["Popis"] ? p["Popis"].replace(/\n/g, "<br>") : "";
+fetch(DATA_URL)
+  .then(r => r.json())
+  .then(geojson => {
 
-        return `
-            <div style="font-family:Arial; font-size:14px; max-width:420px; line-height:1.45;">
+    const layer = L.geoJSON(geojson, {
 
-                <h2 style="margin:0 0 10px 0; font-size:20px;">
-                    ${p["Název projektu"] || ""}
-                </h2>
-
-                ${fotoHtml}
-
-                ${field("Kód projektu", p["Kód projektu"])}
-                ${field("Lokace", p["Lokace"])}
-                ${field("Typologie", p["Typologie"])}
-                ${field("Stav", p["Stav"])}
-                ${field("Investor", p["Investor"])}
-                ${field("Tým", p["Team"])}
-                ${field("Zahájení", p["Zahájení"])}
-                ${field("Dokončení", p["Dokončení"])}
-
-                ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
-            </div>
-        `;
-    }
-      
-    // --- Dynamic data fetch ---
-    var layer_CASUAprojekty_1; // will be created after fetch
-    const DATA_URL = '../data/projekty.geojson?cb=' + Date.now();
-
-    fetch(DATA_URL)
-      .then(function(resp){ if(!resp.ok) throw new Error('Nelze načíst GeoJSON: '+resp.status); return resp.json(); })
-      .then(function(geojson){
-
-        // PŮVODNÍ multiStyle + circleMarker nahrazeno jednoduchým L.geoJSON + L.marker s ikonou
-        layer_CASUAprojekty_1 = L.geoJSON(geojson, {
-          attribution: '',
-          interactive: true,
-          pane: 'pane_CASUAprojekty_1',
-          pointToLayer: function (feature, latlng) {
-            const typ = feature.properties ? feature.properties['Typologie'] : null;
-            const icon = getIconByTypologie(typ);
-            return L.marker(latlng, { icon: icon, pane: 'pane_CASUAprojekty_1' });
-          },
-          onEachFeature: function(f, lyr) { /* popup naváže applyCasuaPopup */ }
+      pointToLayer: function(feature, latlng) {
+        const typ = feature.properties?.["Typologie"];
+        return L.marker(latlng, {
+          icon: getIconByTypologie(typ)
         });
+      },
 
-        bounds_group.addLayer(layer_CASUAprojekty_1);
-        map.addLayer(layer_CASUAprojekty_1);
-        try { map.fitBounds(layer_CASUAprojekty_1.getBounds()); } catch(e) {}
+      onEachFeature: function(feature, layer) {
+        if (feature.properties) {
+          layer.bindPopup(createCasuaPopup(feature.properties));
+        }
+      }
 
-        // Apply pretty popup
-        applyCasuaPopup(layer_CASUAprojekty_1);
+    }).addTo(map);
 
-        // Add Search control once layer exists
-        map.addControl(new L.Control.Search({
-          layer: layer_CASUAprojekty_1,
-          initial: false,
-          hideMarkerOnCollapse: true,
-          propertyName: 'Název projektu'
-        }));
-      })
-      .catch(function(err){ console.error(err); });
+    try { map.fitBounds(layer.getBounds()); } catch(e){}
 
-    // --- Photon geocoder (left as in original) ---
-    const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
-                 "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
-    var photonControl = L.control.photon({ url: url["Nominatim OSM"], feedbackLabel: '', position: 'topleft', includePosition: true, initial: true }).addTo(map);
-    photonControl._container.childNodes[0].style.borderRadius="10px";
-    var x = null; var marker = null; var z = null;
-    photonControl.on('selected', function(e) {
-      if (x != null) { map.removeLayer(obj3.marker); map.removeLayer(x); }
-      obj2.gcd = e.choice; x = L.geoJSON(obj2.gcd).addTo(map);
-      var label = typeof obj2.gcd.properties.label === 'undefined' ? obj2.gcd.properties.display_name : obj2.gcd.properties.label;
-      obj3.marker = L.marker(x.getLayers()[0].getLatLng()).bindPopup(label).addTo(map);
-      map.setView(x.getLayers()[0].getLatLng(), 17);
-      z = typeof e.choice.properties.label === 'undefined'? e.choice.properties.display_name : e.choice.properties.label;
-      e.target.input.value = z;
-    });
-    var search = document.getElementsByClassName("leaflet-photon leaflet-control")[0];
-    search.classList.add("leaflet-control-search");
-    search.style.display = "flex";
-    search.style.backgroundColor = "rgba(255,255,255,0.5)";
-    var button = document.createElement("div");
-    button.id = "gcd-button-control";
-    button.className = "gcd-gl-btn fa fa-search search-button";
-    search.insertBefore(button, search.firstChild);
-    var last = search.lastChild;
-    last.style.display = "none";
-    button.addEventListener("click", function(){ last.style.display = (last.style.display === "none") ? "block" : "none"; });
+    map.addControl(new L.Control.Search({
+      layer: layer,
+      propertyName: 'Název projektu',
+      hideMarkerOnCollapse: true
+    }));
 
-    setBounds();
-  </script>
+  })
+  .catch(err => console.error(err));
+
+</script>
 </body>
 </html>
