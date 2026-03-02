@@ -58,8 +58,8 @@ html, body, #map {
 <body>
 <div id="map"></div>
 
-<script src="web/js/leaflet.js"></script>
-<script src="web/js/leaflet-search.js"></script>
+<script src="/CASUA-Map/web/js/leaflet.js"></script>
+<script src="/CASUA-Map/web/js/leaflet-search.js"></script>
 
 <script>
 
@@ -81,7 +81,7 @@ const logoControl = L.control({ position: 'bottomleft' });
 
 logoControl.onAdd = function () {
   const div = L.DomUtil.create('div');
-  div.innerHTML = `<img src="web/images/logo.png" style="width:140px;">`;
+  div.innerHTML = `<img src="/CASUA-Map/web/images/logo.png" style="width:140px;">`;
   L.DomEvent.disableClickPropagation(div);
   return div;
 };
