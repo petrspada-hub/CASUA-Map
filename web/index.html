@@ -3,167 +3,245 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-<link rel="stylesheet" href="css/leaflet.css">
-<link rel="stylesheet" href="css/leaflet-search.css">
+
+css/leaflet.css
+css/leaflet-search.css
 <link rel="stylesheet" href="css/leaflet.photon.css">
 <link rel="stylesheet" href="css/leaflet-measure.css">
 
 <style>
 html, body, #map {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+ width: 100%;
+ height: 100%;
+ margin: 0;
+ padding: 0;
 }
 
-/* Pevný rozměr popupu */
+/* popup */
 .leaflet-popup-content {
-  margin: 0;
+ margin: 0;
 }
-
 .casua-popup {
-  width: 420px;
-  height: 500px;
-  overflow-y: auto;
-  padding: 15px;
-  box-sizing: border-box;
+ width: 420px;
+ height: 500px;
+ overflow-y: auto;
+ padding: 15px;
+ box-sizing: border-box;
+}
+.casua-popup img {
+ width: 100%;
+ max-height: 260px;
+ object-fit: contain;
+ border-radius: 6px;
+ margin-bottom: 10px;
 }
 
-.casua-popup img {
-  width: 100%;
-  max-height: 260px;
-  object-fit: contain;
-  border-radius: 6px;
-  margin-bottom: 10px;
+/* Logo vlevo dole */
+.leaflet-bottom.leaflet-left .map-logo {
+    background: rgba(255,255,255,0.8);
+    padding: 6px;
+    border-radius: 4px;
+}
+.map-logo img {
+    height: 50px;
+    display: block;
+}
+
+/* Filter panel vlevo nahoře */
+#filterBox {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.25);
+    width: 220px;
+    font-size: 13px;
+}
+#filterBox label {
+    font-weight: bold;
+    margin-top: 5px;
+}
+#filterBox select,
+#filterBox input {
+    width: 100%;
+    margin: 5px 0 10px 0;
+    padding: 4px;
 }
 </style>
 
 <title>CASUA Map</title>
 </head>
 <body>
+
 <div id="map"></div>
 
-<script src="js/leaflet.js"></script>
-<script src="js/leaflet-search.js"></script>
+<!-- Logo -->
+<div class="leaflet-control map-logo leaflet-bottom leaflet-left">
+    <img src="web/images/logo.pngnst POPUP_WIDTH = 420;
+const POPUP_HEIGHT = 500;
+const IMAGE_MAX_HEIGHT = 260;
+const PIN_SIZE = 90;
 
-<script>
-/* ===== NASTAVITELNÉ PARAMETRY ===== */
-
-const POPUP_WIDTH = 420;      // šířka popupu v px
-const POPUP_HEIGHT = 500;     // výška popupu v px
-const IMAGE_MAX_HEIGHT = 260; // max výška obrázku v px
-const PIN_SIZE = 90;          // velikost pinu (px)
-
-/* =================================== */
-
-var map = L.map('map', { maxZoom:28, minZoom:1 })
-  .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]);
+/* mapa */
+var map = L.map('map', { maxZoom: 28, minZoom: 1 })
+    .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]);
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom:19
+ maxZoom: 19
 }).addTo(map);
 
 /* ===== IKONY ===== */
-
 const ICON_FILES = {
-  'bydleni': 'pin_bydleni.png',
-  'administrativa': 'pin_administrativa.png',
-  'kultura': 'pin_kultura.png',
-  'zdravotnictvi': 'pin_zdravotnictvi.png',
-  'ostatni': 'pin_ostatni.png',
-  'polyfunkce': 'pin_polyfunkce.png',
-  'prumysl': 'pin_prumysl.png',
-  'urbanismus': 'pin_urbanismus.png',
-  'vzdelavani': 'pin_vzdelavani.png'
+ 'bydleni': 'pin_bydleni.png',
+ 'administrativa': 'pin_administrativa.png',
+ 'kultura': 'pin_kultura.png',
+ 'zdravotnictvi': 'pin_zdravotnictvi.png',
+ 'ostatni': 'pin_ostatni.png',
+ 'polyfunkce': 'pin_polyfunkce.png',
+ 'prumysl': 'pin_prumysl.png',
+ 'urbanismus': 'pin_urbanismus.png',
+ 'vzdelavani': 'pin_vzdelavani.png'
 };
 
 const TYPO_TO_KEY = {
-  'Bydlení': 'bydleni',
-  'Administrativa': 'administrativa',
-  'Kultura': 'kultura',
-  'Zdravotnictví': 'zdravotnictvi',
-  'Ostatní': 'ostatni',
-  'Polyfunkce': 'polyfunkce',
-  'Průmysl': 'prumysl',
-  'Urbanismus a veřejný prostor': 'urbanismus',
-  'Vzdělávání': 'vzdelavani'
+ 'Bydlení': 'bydleni',
+ 'Administrativa': 'administrativa',
+ 'Kultura': 'kultura',
+ 'Zdravotnictví': 'zdravotnictvi',
+ 'Ostatní': 'ostatni',
+ 'Polyfunkce': 'polyfunkce',
+ 'Průmysl': 'prumysl',
+ 'Urbanismus a veřejný prostor': 'urbanismus',
+ 'Vzdělávání': 'vzdelavani'
 };
 
 function getIconByTypologie(typologie) {
-  const key = TYPO_TO_KEY[typologie] || 'ostatni';
-  return L.icon({
-    iconUrl: 'icons/' + ICON_FILES[key],
-    iconSize: [PIN_SIZE, PIN_SIZE],
-    iconAnchor: [PIN_SIZE/2, PIN_SIZE/2],
-    popupAnchor: [0, -(PIN_SIZE*0.35)]
-  });
+ const key = TYPO_TO_KEY[typologie] || 'ostatni';
+ return L.icon({
+     iconUrl: 'icons/' + ICON_FILES[key],
+     iconSize: [PIN_SIZE, PIN_SIZE],
+     iconAnchor: [PIN_SIZE/2, PIN_SIZE/2],
+     popupAnchor: [0, -(PIN_SIZE*0.35)]
+ });
 }
 
-/* ===== POPUP ===== */
-
+/* ===== POPUP GENERÁTOR ===== */
 function createCasuaPopup(p) {
+ function field(label, value) {
+     if (!value) return "";
+     return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
+ }
+ let fotoHtml = "";
+ if (p["Obrázek"]) fotoHtml = `<img src="${p["Obrázek"]}">`;
 
-  function field(label, value) {
-    if (!value) return "";
-    return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
-  }
+ const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
 
-  let fotoHtml = "";
-  if (p["Obrázek"]) {
-    fotoHtml = `<img src="${p["Obrázek"]}">`;
-  }
-
-  const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
-
-  return `
-    <div class="casua-popup" 
-         style="width:${POPUP_WIDTH}px;height:${POPUP_HEIGHT}px;">
-      <h2 style="margin:0 0 10px 0;">
-        ${p["Název projektu"] || ""}
-      </h2>
-      ${fotoHtml}
-      ${field("Kód projektu", p["Kód projektu"])}
-      ${field("Lokace", p["Lokace"])}
-      ${field("Typologie", p["Typologie"])}
-      ${field("Stav", p["Stav"])}
-      ${field("Investor", p["Investor"])}
-      ${field("Tým", p["Team"])}
-      ${field("Zahájení", p["Zahájení"])}
-      ${field("Dokončení", p["Dokončení"])}
-      ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
-    </div>
-  `;
+ return `
+ <div class="casua-popup" style="width:${POPUP_WIDTH}px;height:${POPUP_HEIGHT}px;">
+     <h2 style="margin:0 0 10px 0;">${p["Název projektu"] || ""}</h2>
+     ${fotoHtml}
+     ${field("Kód projektu", p["Kód projektu"])}
+     ${field("Lokace", p["Lokace"])}
+     ${field("Typologie", p["Typologie"])}
+     ${field("Stav", p["Stav"])}
+     ${field("Investor", p["Investor"])}
+     ${field("Tým", p["Team"])}
+     ${field("Zahájení", p["Zahájení"])}
+     ${field("Dokončení", p["Dokončení"])}
+     ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
+ </div>
+ `;
 }
 
-/* ===== DATA ===== */
+/* ==== PANEL FILTRŮ ===== */
+const filterControl = L.control({position: "topleft"});
+filterControl.onAdd = function(map) {
+    const div = L.DomUtil.create("div", "");
+    div.id = "filterBox";
+    div.innerHTML = `
+        <label>Vyhledat:</label>
+        <input type="text" id="searchInput" placeholder="název nebo kód">
 
-fetch('../data/projekty.geojson?cb=' + Date.now())
-  .then(r => r.json())
-  .then(geojson => {
+        <label>Typologie:</label>
+        <select id="filterTypologie">
+            <option value="">Vše</option>
+            <option>Bydlení</option>
+            <option>Administrativa</option>
+            <option>Kultura</option>
+            <option>Zdravotnictví</option>
+            <option>Ostatní</option>
+            <option>Polyfunkce</option>
+            <option>Průmysl</option>
+            <option>Urbanismus a veřejný prostor</option>
+            <option>Vzdělávání</option>
+        </select>
 
-    const layer = L.geoJSON(geojson, {
+        <label>Stav:</label>
+        <select id="filterStav">
+            <option value="">Vše</option>
+            <option>Studie</option>
+            <option>Probíhá</option>
+            <option>Dokončeno</option>
+            <option>Realizace</option>
+        </select>
+    `;
+    L.DomEvent.disableClickPropagation(div);
+    return div;
+};
+filterControl.addTo(map);
 
-      pointToLayer: function(feature, latlng) {
-        return L.marker(latlng, {
-          icon: getIconByTypologie(feature.properties?.["Typologie"])
-        });
-      },
+/* ===== FILTROVÁNÍ ===== */
+let allFeatures = [];
+let activeLayerGroup = L.layerGroup().addTo(map);
 
-      onEachFeature: function(feature, layer) {
-        if (feature.properties) {
-          layer.bindPopup(createCasuaPopup(feature.properties), {
-            maxWidth: POPUP_WIDTH + 40
-          });
+function renderMarkers() {
+    activeLayerGroup.clearLayers();
+
+    const txt = document.getElementById("searchInput").value.toLowerCase();
+    const typ = document.getElementById("filterTypologie").value;
+    const stav = document.getElementById("filterStav").value;
+
+    allFeatures.forEach(f => {
+        const p = f.properties;
+
+        const matchSearch =
+            (p["Název projektu"] || "").toLowerCase().includes(txt) ||
+            (p["Kód projektu"] || "").toLowerCase().includes(txt);
+
+        const matchTyp = typ === "" || p["Typologie"] === typ;
+        const matchStav = stav === "" || p["Stav"] === stav;
+
+        if (matchSearch && matchTyp && matchStav) {
+            const marker = L.marker(f.latlng, { icon: getIconByTypologie(p["Typologie"]) });
+            marker.bindPopup(createCasuaPopup(p), { maxWidth: POPUP_WIDTH + 40 });
+            marker.addTo(activeLayerGroup);
         }
-      }
+    });
+}
 
-    }).addTo(map);
+/* ===== NAČTENÍ GEOJSON ===== */
+fetch('../data/projekty.geojson?cb=' + Date.now())
+    .then(r => r.json())
+    .then(geojson => {
+        geojson.features.forEach(f => {
+            if (f.geometry?.coordinates) {
+                const lat = f.geometry.coordinates[1];
+                const lng = f.geometry.coordinates[0];
+                allFeatures.push({
+                    properties: f.properties,
+                    latlng: L.latLng(lat, lng)
+                });
+            }
+        });
+        renderMarkers();
+    })
+    .catch(err => console.error(err));
 
-    try { map.fitBounds(layer.getBounds()); } catch(e){}
-
-  })
-  .catch(err => console.error(err));
+/* eventy */
+document.getElementById("searchInput").oninput = renderMarkers;
+document.getElementById("filterTypologie").onchange = renderMarkers;
+document.getElementById("filterStav").onchange = renderMarkers;
 
 </script>
+
 </body>
 </html>
