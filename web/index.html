@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
 
-  <!-- CSS – relativní cesty -->
+  <!-- CSS -->
   <link rel="stylesheet" href="css/leaflet.css">
   <link rel="stylesheet" href="css/leaflet-search.css">
   <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -30,7 +30,7 @@
       margin-bottom: 10px;
     }
 
-    /* ===== TLAČÍTKO FILTRU VPRAVO NAHOŘE ===== */
+    /* ===== TLAČÍTKO FILTRU ===== */
     .filter-toggle-btn {
       position: absolute;
       top: 15px;
@@ -49,7 +49,7 @@
     }
     .filter-toggle-btn img { width: 26px; height: 26px; display: block; }
 
-    /* ===== VYSOUVACÍ OKNO FILTRU ===== */
+    /* ===== OKNO FILTRŮ ===== */
     .filter-window {
       position: absolute;
       top: 65px;
@@ -60,7 +60,7 @@
       border-radius: 6px;
       box-shadow: 0 0 10px rgba(0,0,0,0.25);
       z-index: 9999;
-      display: none; /* skryté, dokud není .open */
+      display: none;
     }
     .filter-window.open { display: block; }
 
@@ -73,7 +73,7 @@
       box-sizing: border-box;
     }
 
-    /* Řádek s vyhledáváním + křížek */
+    /* ===== Vyhledávání + křížek ===== */
     .search-row { position: relative; }
     #searchText { padding-right: 28px; }
     .clear-btn {
@@ -83,19 +83,16 @@
       transform: translateY(-50%);
       width: 22px;
       height: 22px;
-      line-height: 20px;
-      text-align: center;
       border: none;
-      background: #f0f0f0;
+      background: #eee;
       border-radius: 11px;
       cursor: pointer;
       font-size: 16px;
-      color: #333;
-      padding: 0;
+      line-height: 20px;
+      text-align: center;
     }
-    .clear-btn:hover { background: #e0e0e0; }
 
-    /* Tlačítka ve filtru */
+    /* ===== Tlačítka uvnitř filtru ===== */
     .filter-actions {
       display: flex;
       gap: 8px;
@@ -104,13 +101,12 @@
     .btn {
       flex: 1;
       font-size: 13px;
-      padding: 6px 8px;
-      border: 1px solid #ccc;
+      padding: 6px;
       border-radius: 6px;
+      border: 1px solid #ccc;
       background: #fafafa;
       cursor: pointer;
     }
-    .btn:hover { background: #f0f0f0; }
     .btn.secondary { background: #fff; }
   </style>
 
@@ -119,13 +115,13 @@
 <body>
   <div id="map"></div>
 
-  <!-- TLAČÍTKO FILTRU -->
-  <div class="filter-toggle-btn" id="filterToggle" title="Filtry">
-    <img src="images/filter-icon.png" alt="Filtr">
+  <!-- TLAČÍTKO FILTRŮ -->
+  <div class="filter-toggle-btn" id="filterToggle">
+    <img src="images/filter-icon.png">
   </div>
 
-  <!-- OKNO S FILTRY -->
-  <div class="filter-window" id="filterWindow" aria-hidden="true">
+  <!-- OKNO FILTRŮ -->
+  <div class="filter-window" id="filterWindow">
     <select id="filterTypologie">
       <option value="">Typologie – vše</option>
     </select>
@@ -135,215 +131,224 @@
     </select>
 
     <div class="search-row">
-      <input type="text" id="searchText" placeholder="Hledat název / kód" autocomplete="off">
-      <button type="button" id="clearSearch" class="clear-btn" title="Vymazat">×</button>
+      <input id="searchText" type="text" placeholder="Hledat název / kód">
+      <button id="clearSearch" class="clear-btn">×</button>
     </div>
 
     <div class="filter-actions">
-      <button type="button" id="resetFilters" class="btn">Vymazat filtr</button>
-      <button type="button" id="closeFilters" class="btn secondary">Zavřít</button>
+      <button id="resetFilters" class="btn">Vymazat filtr</button>
+      <button id="closeFilters" class="btn secondary">Zavřít</button>
     </div>
   </div>
 
-  <!-- JS – relativní cesty -->
+  <!-- JS -->
   <script src="js/leaflet.js"></script>
   <script src="js/leaflet-search.js"></script>
 
   <script>
-    /* ===== PARAMETRY ===== */
-    const POPUP_WIDTH = 420;
-    const POPUP_HEIGHT = 500;
-    const IMAGE_MAX_HEIGHT = 260;
-    const PIN_SIZE = 90;
 
-    /* ===== MAPA ===== */
-    var map = L.map('map', { maxZoom: 28, minZoom: 1 })
-      .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]); // počáteční rozsah
+    /* ============================================
+       MAPA – omezení zoomu
+    ============================================ */
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    var map = L.map('map', {
+      minZoom: 10,
+      maxZoom: 18
+    });
 
-    /* ===== LOGO ===== */
-    const logoControl = L.control({ position: 'bottomleft' });
-    logoControl.onAdd = function () {
-      const div = L.DomUtil.create('div');
-      div.innerHTML = '<img src="images/logo.png" alt="Logo" style="width:140px;">';
-      L.DomEvent.disableClickPropagation(div);
-      return div;
+
+    /* ============================================
+       Podklady
+    ============================================ */
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    /* ============================================
+       LOGO
+    ============================================ */
+
+    const logo = L.control({ position:'bottomleft' });
+    logo.onAdd = () => {
+      const d = L.DomUtil.create('div');
+      d.innerHTML = '<img src="images/logo.png" style="width:140px">';
+      return d;
     };
-    logoControl.addTo(map);
+    logo.addTo(map);
 
-    /* ===== IKONY ===== */
+
+    /* ============================================
+       IKONY
+    ============================================ */
+
     const ICON_FILES = {
-      'bydleni': 'pin_bydleni.png',
-      'administrativa': 'pin_administrativa.png',
-      'kultura': 'pin_kultura.png',
-      'zdravotnictvi': 'pin_zdravotnictvi.png',
-      'ostatni': 'pin_ostatni.png',
-      'polyfunkce': 'pin_polyfunkce.png',
-      'prumysl': 'pin_prumysl.png',
-      'urbanismus': 'pin_urbanismus.png',
-      'vzdelavani': 'pin_vzdelavani.png'
+      bydleni:'pin_bydleni.png',
+      administrativa:'pin_administrativa.png',
+      kultura:'pin_kultura.png',
+      zdravotnictvi:'pin_zdravotnictvi.png',
+      ostatni:'pin_ostatni.png',
+      polyfunkce:'pin_polyfunkce.png',
+      prumysl:'pin_prumysl.png',
+      urbanismus:'pin_urbanismus.png',
+      vzdelavani:'pin_vzdelavani.png'
     };
+
     const TYPO_TO_KEY = {
-      'Bydlení': 'bydleni',
-      'Administrativa': 'administrativa',
-      'Kultura': 'kultura',
-      'Zdravotnictví': 'zdravotnictvi',
-      'Ostatní': 'ostatni',
-      'Polyfunkce': 'polyfunkce',
-      'Průmysl': 'prumysl',
-      'Urbanismus a veřejný prostor': 'urbanismus',
-      'Vzdělávání': 'vzdelavani'
+      'Bydlení':'bydleni',
+      'Administrativa':'administrativa',
+      'Kultura':'kultura',
+      'Zdravotnictví':'zdravotnictvi',
+      'Ostatní':'ostatni',
+      'Polyfunkce':'polyfunkce',
+      'Průmysl':'prumysl',
+      'Urbanismus a veřejný prostor':'urbanismus',
+      'Vzdělávání':'vzdelavani'
     };
-    function getIconByTypologie(typologie) {
-      const key = TYPO_TO_KEY[typologie] || 'ostatni';
+
+    function getIcon(typ) {
+      const key = TYPO_TO_KEY[typ] || 'ostatni';
       return L.icon({
-        iconUrl: 'icons/' + ICON_FILES[key],
-        iconSize: [PIN_SIZE, PIN_SIZE],
-        iconAnchor: [PIN_SIZE/2, PIN_SIZE/2],
-        popupAnchor: [0, -(PIN_SIZE*0.35)]
+        iconUrl:'icons/' + ICON_FILES[key],
+        iconSize:[90,90],
+        iconAnchor:[45,45],
+        popupAnchor:[0,-30]
       });
     }
 
-    /* ===== POPUP ===== */
-    function createCasuaPopup(p) {
-      function field(label, value) { return !value ? "" : `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`; }
-      const fotoHtml = p["Obrázek"] ? `<img src="${p["Obrázek"]}" alt="">` : "";
+
+    /* ============================================
+       POPUP
+    ============================================ */
+
+    function popup(p){
+      function f(lbl,val){
+        return val ? `<div><strong>${lbl}:</strong> ${val}</div>` : '';
+      }
+      const img = p["Obrázek"] ? `${p[` : "";
       const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
       return `
         <div class="casua-popup">
-          <h2 style="margin:0 0 10px 0;">${p["Název projektu"] || ""}</h2>
-          ${fotoHtml}
-          ${field("Kód projektu", p["Kód projektu"])}
-          ${field("Lokace", p["Lokace"])}
-          ${field("Typologie", p["Typologie"])}
-          ${field("Stav", p["Stav"])}
-          ${field("Investor", p["Investor"])}
-          ${field("Tým", p["Team"])}
-          ${field("Zahájení", p["Zahájení"])}
-          ${field("Dokončení", p["Dokončení"])}
-          ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
+          <h2>${p['Název projektu']||''}</h2>
+          ${img}
+          ${f("Kód projektu",p["Kód projektu"])}
+          ${f("Lokace",p["Lokace"])}
+          ${f("Typologie",p["Typologie"])}
+          ${f("Stav",p["Stav"])}
+          ${f("Investor",p["Investor"])}
+          ${f("Tým",p["Team"])}
+          ${f("Zahájení",p["Zahájení"])}
+          ${f("Dokončení",p["Dokončení"])}
+          ${popis?`<p><strong>Popis:</strong><br>${popis}</p>`:""}
         </div>`;
     }
 
-    /* ===== Pomocná funkce – normalizace bez diakritiky + lowercase ===== */
-    function normalizeStr(str) {
-      return (str || "")
-        .toString()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // odstranění diakritiky
+
+    /* ============================================
+       NORMALIZACE TEXTU BEZ DIAKRITIKY
+    ============================================ */
+
+    function norm(str){
+      return (str||"")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
         .toLowerCase();
     }
 
-    /* ===== DATA + FILTRY ===== */
-    fetch('../data/projekty.geojson?cb=' + Date.now())
-      .then(r => r.json())
-      .then(geojson => {
-        let allFeatures = geojson.features;
-        let geoLayer;
-        let didFitOnce = false; // fit na data pouze jednou po načtení
 
-        function renderLayer(features) {
-          if (geoLayer) map.removeLayer(geoLayer);
-          geoLayer = L.geoJSON(
-            { type: "FeatureCollection", features },
+    /* ============================================
+       NAČTENÍ DAT
+    ============================================ */
+
+    fetch('../data/projekty.geojson?cb='+Date.now())
+      .then(r=>r.json())
+      .then(geo=>{
+        const all = geo.features;
+        let layer;
+        let allBounds = null;
+
+        function draw(features){
+          if(layer) map.removeLayer(layer);
+          layer = L.geoJSON(
+            {type:"FeatureCollection",features},
             {
-              pointToLayer: (feature, latlng) => L.marker(latlng, {
-                icon: getIconByTypologie(feature.properties?.["Typologie"])
-              }),
-              onEachFeature: (feature, layer) => {
-                if (feature.properties) {
-                  layer.bindPopup(createCasuaPopup(feature.properties), { maxWidth: POPUP_WIDTH + 40 });
-                }
-              }
+              pointToLayer:(f,ll)=>L.marker(ll,{icon:getIcon(f.properties?.Typologie)}),
+              onEachFeature:(f,l)=>l.bindPopup(popup(f.properties))
             }
           ).addTo(map);
-
-          // Přizpůsob rozsah jen jednou na začátku
-          if (!didFitOnce) {
-            try { map.fitBounds(geoLayer.getBounds(), { padding: [10,10] }); } catch(e) {}
-            didFitOnce = true;
-          }
         }
 
-        renderLayer(allFeatures);
+        // první render
+        draw(all);
 
-        // --- Prvky UI filtru ---
-        const typSelect    = document.getElementById("filterTypologie");
-        const stavSelect   = document.getElementById("filterStav");
-        const searchInput  = document.getElementById("searchText");
-        const clearBtn     = document.getElementById("clearSearch");
-        const resetBtn     = document.getElementById("resetFilters");
-        const closeBtn     = document.getElementById("closeFilters");
+        // ====== automatické maximální hranice mapy ======
+        try {
+          allBounds = layer.getBounds().pad(0.05);
+          map.fitBounds(allBounds);
+          map.setMaxBounds(allBounds);
+          map.options.maxBoundsViscosity = 1.0;
+        } catch(e){}
 
-        // Naplnění hodnot do selectů
-        const typSet = new Set();
-        const stavSet = new Set();
-        allFeatures.forEach(f => {
-          if (f.properties?.["Typologie"]) typSet.add(f.properties["Typologie"]);
-          if (f.properties?.["Stav"])      stavSet.add(f.properties["Stav"]);
-        });
-        [...typSet].sort().forEach(t => { typSelect.innerHTML += `<option value="${t}">${t}</option>`; });
-        [...stavSet].sort().forEach(s => { stavSelect.innerHTML += `<option value="${s}">${s}</option>`; });
+        // ====== selecty ======
+        const tSel = document.getElementById("filterTypologie");
+        const sSel = document.getElementById("filterStav");
+        const txt  = document.getElementById("searchText");
+        const clr  = document.getElementById("clearSearch");
+        const rst  = document.getElementById("resetFilters");
+        const cls  = document.getElementById("closeFilters");
 
-        function applyFilter() {
-          const typVal = typSelect.value;
-          const stavVal = stavSelect.value;
-          const searchVal = normalizeStr(searchInput.value);
+        [...new Set(all.map(f=>f.properties?.Typologie))].filter(Boolean).sort()
+          .forEach(v=>tSel.innerHTML+=`<option>${v}</option>`);
 
-          const filtered = allFeatures.filter(f => {
+        [...new Set(all.map(f=>f.properties?.Stav))].filter(Boolean).sort()
+          .forEach(v=>sSel.innerHTML+=`<option>${v}</option>`);
+
+        function apply(){
+          const typ = tSel.value;
+          const sta = sSel.value;
+          const srch = norm(txt.value);
+
+          const filtered = all.filter(f=>{
             const p = f.properties || {};
-            const matchTyp  = !typVal  || p["Typologie"] === typVal;
-            const matchStav = !stavVal || p["Stav"] === stavVal;
-            const text = (normalizeStr(p["Název projektu"]) + " " + normalizeStr(p["Kód projektu"])).trim();
-            const matchSearch = !searchVal || text.includes(searchVal);
-            return matchTyp && matchStav && matchSearch;
+            const mt = !typ || p.Typologie===typ;
+            const ms = !sta || p.Stav===sta;
+            const text = norm(p["Název projektu"])+" "+norm(p["Kód projektu"]);
+            const mq = !srch || text.includes(srch);
+            return mt && ms && mq;
           });
 
-          // Překreslit vrstvy bez změny zoomu
-          renderLayer(filtered);
+          draw(filtered);
         }
 
-        // Eventy filtrů
-        typSelect.addEventListener("change", applyFilter);
-        stavSelect.addEventListener("change", applyFilter);
-        searchInput.addEventListener("input", applyFilter);
+        tSel.onchange = apply;
+        sSel.onchange = apply;
+        txt.oninput = apply;
 
-        // Křížek na vymazání vyhledávání
-        clearBtn.addEventListener("click", () => {
-          if (searchInput.value !== "") {
-            searchInput.value = "";
-            applyFilter();
-            searchInput.focus();
-          }
-        });
+        clr.onclick = ()=>{
+          txt.value = "";
+          apply();
+          txt.focus();
+        };
 
-        // === TLAČÍTKO „VYMAZAT FILTR“ (reset všeho) ===
-        resetBtn.addEventListener("click", () => {
-          typSelect.value = "";
-          stavSelect.value = "";
-          searchInput.value = "";
-          applyFilter();              // pouze překreslí (zoom se nemění)
-          searchInput.focus();
-        });
+        rst.onclick = ()=>{
+          tSel.value=""; sSel.value=""; txt.value="";
+          apply();
+        };
 
-        // Volitelné „Zavřít“ okno (čistě UI)
-        closeBtn.addEventListener("click", () => {
-          filterWindow.classList.remove("open");
-          filterWindow.setAttribute("aria-hidden", "true");
-        });
-      })
-      .catch(err => console.error(err));
+        cls.onclick = ()=>filterWindow.classList.remove("open");
+      });
 
-    /* ===== OVLÁDÁNÍ VYSOUVACÍHO OKNA FILTRU ===== */
+
+    /* ============================================
+       OVLÁDÁNÍ PANELU FILTRU
+    ============================================ */
+
     const filterToggle = document.getElementById("filterToggle");
     const filterWindow = document.getElementById("filterWindow");
 
-    // Pouze přepínání tlačítkem (žádné zavírání klikem mimo)
-    filterToggle.addEventListener("click", () => {
-      const open = filterWindow.classList.toggle("open");
-      filterWindow.setAttribute("aria-hidden", open ? "false" : "true");
-    });
+    filterToggle.onclick = ()=>{
+      filterWindow.classList.toggle("open");
+    };
+
   </script>
 </body>
 </html>
