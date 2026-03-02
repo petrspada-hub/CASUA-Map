@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
 
-<!-- CSS – relativní cesty -->
+<!-- CSS -->
 <link rel="stylesheet" href="css/leaflet.css">
 <link rel="stylesheet" href="css/leaflet-search.css">
 <link rel="stylesheet" href="css/leaflet.photon.css">
@@ -18,11 +18,7 @@ html, body, #map {
     padding: 0;
 }
 
-.leaflet-popup-content {
-    margin: 0;
-}
-
-/* popup */
+/* Popup */
 .casua-popup {
     width: 420px;
     height: 500px;
@@ -39,20 +35,57 @@ html, body, #map {
     margin-bottom: 10px;
 }
 
-/* filtry */
-.casua-filter {
+/* ===== FILTR – tlačítko ===== */
+.filter-toggle-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 10000;
+    width: 42px;
+    height: 42px;
     background: white;
-    padding: 10px;
     border-radius: 6px;
-    box-shadow: 0 0 6px rgba(0,0,0,0.2);
-    font-size: 13px;
-    width: 220px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.filter-toggle-btn img {
+    width: 26px;
+    height: 26px;
 }
 
-.casua-filter select,
-.casua-filter input {
+/* ===== PANEL – výsuvný zleva ===== */
+.filter-drawer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100%;
+    background: white;
+    box-shadow: 3px 0 8px rgba(0,0,0,0.25);
+    padding: 12px;
+    box-sizing: border-box;
+    z-index: 9999;
+    transform: translateX(-270px);
+    transition: transform 0.25s ease;
+}
+.filter-drawer.open {
+    transform: translateX(0);
+}
+
+.filter-drawer h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.filter-drawer select,
+.filter-drawer input {
     width: 100%;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding: 6px;
+    font-size: 13px;
     box-sizing: border-box;
 }
 </style>
@@ -63,7 +96,27 @@ html, body, #map {
 <body>
 <div id="map"></div>
 
-<!-- JS – relativní cesty -->
+<!-- TLAČÍTKO filtru -->
+<div class="filter-toggle-btn" id="filterToggle">
+    <img src="images/filter-icon.png" alt="filter">
+</div>
+
+<!-- PANEL filtru -->
+<div class="filter-drawer" id="filterDrawer">
+    <h3>Filtr projektů</h3>
+
+    <select id="filterTypologie">
+        <option value="">Typologie – vše</option>
+    </select>
+
+    <select id="filterStav">
+        <option value="">Stav – vše</option>
+    </select>
+
+    <input type="text" id="searchText" placeholder="Hledat název / kód">
+</div>
+
+<!-- JS -->
 <script src="js/leaflet.js"></script>
 <script src="js/leaflet-search.js"></script>
 
@@ -71,7 +124,6 @@ html, body, #map {
 /* ===== PARAMETRY ===== */
 const POPUP_WIDTH = 420;
 const POPUP_HEIGHT = 500;
-const IMAGE_MAX_HEIGHT = 260;
 const PIN_SIZE = 90;
 
 /* ===== MAPA ===== */
@@ -133,12 +185,10 @@ function createCasuaPopup(p) {
         if (!value) return "";
         return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
     }
-
     let fotoHtml = "";
     if (p["Obrázek"]) {
         fotoHtml = `<img src="${p["Obrázek"]}">`;
     }
-
     const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
 
     return `
@@ -160,11 +210,10 @@ function createCasuaPopup(p) {
     `;
 }
 
-/* ===== DATA + FILTRY ===== */
-fetch('../data/projekty.geojson?cb=' + Date.now())
+/* ===== DATA + FILTR ===== */
+fetch('data/projekty.geojson?cb=' + Date.now())
     .then(r => r.json())
     .then(geojson => {
-
         let allFeatures = geojson.features;
         let geoLayer;
 
@@ -191,24 +240,7 @@ fetch('../data/projekty.geojson?cb=' + Date.now())
 
         renderLayer(allFeatures);
 
-        /* FILTROVACÍ PANEL */
-        const filterControl = L.control({ position: 'topleft' });
-        filterControl.onAdd = function () {
-            const div = L.DomUtil.create('div', 'casua-filter');
-            div.innerHTML = `
-                <select id="filterTypologie">
-                    <option value="">Typologie – vše</option>
-                </select>
-                <select id="filterStav">
-                    <option value="">Stav – vše</option>
-                </select>
-                <input type="text" id="searchText" placeholder="Hledat název / kód">
-            `;
-            L.DomEvent.disableClickPropagation(div);
-            return div;
-        };
-        filterControl.addTo(map);
-
+        /* Naplnění filtrů */
         const typSelect = document.getElementById("filterTypologie");
         const stavSelect = document.getElementById("filterStav");
         const searchInput = document.getElementById("searchText");
@@ -254,9 +286,22 @@ fetch('../data/projekty.geojson?cb=' + Date.now())
         searchInput.addEventListener("input", applyFilter);
 
         try { map.fitBounds(geoLayer.getBounds()); } catch(e){}
-    })
-    .catch(err => console.error(err));
+    });
 
+/* === OVLÁDÁNÍ VÝSUVNÉHO PANELU === */
+const filterToggle = document.getElementById("filterToggle");
+const filterDrawer = document.getElementById("filterDrawer");
+
+filterToggle.addEventListener("click", () => {
+    filterDrawer.classList.toggle("open");
+});
+
+document.addEventListener("click", (e) => {
+    if (!filterDrawer.contains(e.target) && !filterToggle.contains(e.target)) {
+        filterDrawer.classList.remove("open");
+    }
+});
 </script>
+
 </body>
 </html>
