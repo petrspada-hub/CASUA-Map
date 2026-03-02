@@ -157,10 +157,13 @@
     const PIN_SIZE = 90;
 
     /* ===== MAPA ===== */
-    var map = L.map('map', { maxZoom: 28, minZoom: 1 })
+    var map = L.map('map', { maxZoom: 19, minZoom: 3 })
       .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]); // počáteční rozsah
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxNativeZoom: 19,
+      maxZoom: 19        // dle poskytovatele; mapu ale limituješ přes map.maxZoom = 18
+    }).addTo(map);
 
     /* ===== LOGO ===== */
     const logoControl = L.control({ position: 'bottomleft' });
