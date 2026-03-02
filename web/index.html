@@ -11,12 +11,7 @@
   <link rel="stylesheet" href="css/leaflet-measure.css">
 
   <style>
-    html, body, #map {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
+    html, body, #map { width: 100%; height: 100%; margin: 0; padding: 0; }
     .leaflet-popup-content { margin: 0; }
 
     /* ===== POPUP ===== */
@@ -52,18 +47,14 @@
       cursor: pointer;
       user-select: none;
     }
-    .filter-toggle-btn img {
-      width: 26px;
-      height: 26px;
-      display: block;
-    }
+    .filter-toggle-btn img { width: 26px; height: 26px; display: block; }
 
     /* ===== VYSOUVACÍ OKNO FILTRU ===== */
     .filter-window {
       position: absolute;
       top: 65px;
       right: 15px;
-      width: 240px;
+      width: 260px;
       background: white;
       padding: 10px;
       border-radius: 6px;
@@ -83,12 +74,8 @@
     }
 
     /* Řádek s vyhledáváním + křížek */
-    .search-row {
-      position: relative;
-    }
-    #searchText {
-      padding-right: 28px; /* místo pro křížek */
-    }
+    .search-row { position: relative; }
+    #searchText { padding-right: 28px; }
     .clear-btn {
       position: absolute;
       right: 6px;
@@ -107,6 +94,24 @@
       padding: 0;
     }
     .clear-btn:hover { background: #e0e0e0; }
+
+    /* Tlačítka ve filtru */
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .btn {
+      flex: 1;
+      font-size: 13px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f0f0f0; }
+    .btn.secondary { background: #fff; }
   </style>
 
   <title>CASUA Map</title>
@@ -133,6 +138,11 @@
       <input type="text" id="searchText" placeholder="Hledat název / kód" autocomplete="off">
       <button type="button" id="clearSearch" class="clear-btn" title="Vymazat">×</button>
     </div>
+
+    <div class="filter-actions">
+      <button type="button" id="resetFilters" class="btn">Vymazat filtr</button>
+      <button type="button" id="closeFilters" class="btn secondary">Zavřít</button>
+    </div>
   </div>
 
   <!-- JS – relativní cesty -->
@@ -148,17 +158,15 @@
 
     /* ===== MAPA ===== */
     var map = L.map('map', { maxZoom: 28, minZoom: 1 })
-      .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]); // počáteční rozsah (Praha)
+      .fitBounds([[50.06315,14.40062],[50.14089,14.50308]]); // počáteční rozsah
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
     /* ===== LOGO ===== */
     const logoControl = L.control({ position: 'bottomleft' });
     logoControl.onAdd = function () {
       const div = L.DomUtil.create('div');
-      div.innerHTML = '<img src="images/logo.png" style="width:140px;" alt="Logo">';
+      div.innerHTML = '<img src="images/logo.png" alt="Logo" style="width:140px;">';
       L.DomEvent.disableClickPropagation(div);
       return div;
     };
@@ -199,20 +207,12 @@
 
     /* ===== POPUP ===== */
     function createCasuaPopup(p) {
-      function field(label, value) {
-        if (!value) return "";
-        return `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`;
-      }
-      let fotoHtml = "";
-      if (p["Obrázek"]) {
-        fotoHtml = `<img src="${p["Obrázek"]}" alt="">`;
-      }
-      const popis = p["Popis"] ? p["Popis"].replace(/\\n/g,"<br>") : "";
+      function field(label, value) { return !value ? "" : `<div style="margin:4px 0;"><strong>${label}:</strong> ${value}</div>`; }
+      const fotoHtml = p["Obrázek"] ? `<img src="${p["Obrázek"]}" alt="">` : "";
+      const popis = p["Popis"] ? p["Popis"].replace(/\n/g,"<br>") : "";
       return `
         <div class="casua-popup">
-          <h2 style="margin:0 0 10px 0;">
-            ${p["Název projektu"] || ""}
-          </h2>
+          <h2 style="margin:0 0 10px 0;">${p["Název projektu"] || ""}</h2>
           ${fotoHtml}
           ${field("Kód projektu", p["Kód projektu"])}
           ${field("Lokace", p["Lokace"])}
@@ -223,12 +223,11 @@
           ${field("Zahájení", p["Zahájení"])}
           ${field("Dokončení", p["Dokončení"])}
           ${popis ? `<p style="margin-top:10px;"><strong>Popis:</strong><br>${popis}</p>` : ""}
-        </div>
-      `;
+        </div>`;
     }
 
     /* ===== Pomocná funkce – normalizace bez diakritiky + lowercase ===== */
-    function normalize(str) {
+    function normalizeStr(str) {
       return (str || "")
         .toString()
         .normalize('NFD')
@@ -247,24 +246,20 @@
         function renderLayer(features) {
           if (geoLayer) map.removeLayer(geoLayer);
           geoLayer = L.geoJSON(
-            { type: "FeatureCollection", features: features },
+            { type: "FeatureCollection", features },
             {
-              pointToLayer: function(feature, latlng) {
-                return L.marker(latlng, {
-                  icon: getIconByTypologie(feature.properties?.["Typologie"])
-                });
-              },
-              onEachFeature: function(feature, layer) {
+              pointToLayer: (feature, latlng) => L.marker(latlng, {
+                icon: getIconByTypologie(feature.properties?.["Typologie"])
+              }),
+              onEachFeature: (feature, layer) => {
                 if (feature.properties) {
-                  layer.bindPopup(createCasuaPopup(feature.properties), {
-                    maxWidth: POPUP_WIDTH + 40
-                  });
+                  layer.bindPopup(createCasuaPopup(feature.properties), { maxWidth: POPUP_WIDTH + 40 });
                 }
               }
             }
           ).addTo(map);
 
-          // Po prvním vykreslení přizpůsob rozsah datům (jednorázově)
+          // Přizpůsob rozsah jen jednou na začátku
           if (!didFitOnce) {
             try { map.fitBounds(geoLayer.getBounds(), { padding: [10,10] }); } catch(e) {}
             didFitOnce = true;
@@ -274,10 +269,12 @@
         renderLayer(allFeatures);
 
         // --- Prvky UI filtru ---
-        const typSelect   = document.getElementById("filterTypologie");
-        const stavSelect  = document.getElementById("filterStav");
-        const searchInput = document.getElementById("searchText");
-        const clearBtn    = document.getElementById("clearSearch");
+        const typSelect    = document.getElementById("filterTypologie");
+        const stavSelect   = document.getElementById("filterStav");
+        const searchInput  = document.getElementById("searchText");
+        const clearBtn     = document.getElementById("clearSearch");
+        const resetBtn     = document.getElementById("resetFilters");
+        const closeBtn     = document.getElementById("closeFilters");
 
         // Naplnění hodnot do selectů
         const typSet = new Set();
@@ -286,45 +283,54 @@
           if (f.properties?.["Typologie"]) typSet.add(f.properties["Typologie"]);
           if (f.properties?.["Stav"])      stavSet.add(f.properties["Stav"]);
         });
-        [...typSet].sort().forEach(t => {
-          typSelect.innerHTML += `<option value="${t}">${t}</option>`;
-        });
-        [...stavSet].sort().forEach(s => {
-          stavSelect.innerHTML += `<option value="${s}">${s}</option>`;
-        });
+        [...typSet].sort().forEach(t => { typSelect.innerHTML += `<option value="${t}">${t}</option>`; });
+        [...stavSet].sort().forEach(s => { stavSelect.innerHTML += `<option value="${s}">${s}</option>`; });
 
         function applyFilter() {
           const typVal = typSelect.value;
           const stavVal = stavSelect.value;
-          const searchVal = normalize(searchInput.value);
+          const searchVal = normalizeStr(searchInput.value);
 
           const filtered = allFeatures.filter(f => {
             const p = f.properties || {};
             const matchTyp  = !typVal  || p["Typologie"] === typVal;
             const matchStav = !stavVal || p["Stav"] === stavVal;
-
-            // vyhledávání bez diakritiky + case-insensitive v názvu i kódu
-            const text = (normalize(p["Název projektu"]) + " " + normalize(p["Kód projektu"])).trim();
+            const text = (normalizeStr(p["Název projektu"]) + " " + normalizeStr(p["Kód projektu"])).trim();
             const matchSearch = !searchVal || text.includes(searchVal);
-
             return matchTyp && matchStav && matchSearch;
           });
 
-          // Pouze překreslit vrstvy – BEZ změny zoomu
+          // Překreslit vrstvy bez změny zoomu
           renderLayer(filtered);
         }
 
+        // Eventy filtrů
         typSelect.addEventListener("change", applyFilter);
         stavSelect.addEventListener("change", applyFilter);
         searchInput.addEventListener("input", applyFilter);
 
-        // Křížek na vymazání
+        // Křížek na vymazání vyhledávání
         clearBtn.addEventListener("click", () => {
           if (searchInput.value !== "") {
             searchInput.value = "";
             applyFilter();
             searchInput.focus();
           }
+        });
+
+        // === TLAČÍTKO „VYMAZAT FILTR“ (reset všeho) ===
+        resetBtn.addEventListener("click", () => {
+          typSelect.value = "";
+          stavSelect.value = "";
+          searchInput.value = "";
+          applyFilter();              // pouze překreslí (zoom se nemění)
+          searchInput.focus();
+        });
+
+        // Volitelné „Zavřít“ okno (čistě UI)
+        closeBtn.addEventListener("click", () => {
+          filterWindow.classList.remove("open");
+          filterWindow.setAttribute("aria-hidden", "true");
         });
       })
       .catch(err => console.error(err));
