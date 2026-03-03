@@ -171,7 +171,7 @@
     const logoControl = L.control({ position: 'bottomleft' });
     logoControl.onAdd = function () {
       const div = L.DomUtil.create('div');
-      div.innerHTML = '<img src="images/logo.png" alt="Logo" style="width:140px;">';
+      div.innerHTML = '<img src="images/logo.png" alt="Logo" style="width:140px; margin-left:-10px; margin-bottom:10px;">';
       L.DomEvent.disableClickPropagation(div);
       return div;
     };
