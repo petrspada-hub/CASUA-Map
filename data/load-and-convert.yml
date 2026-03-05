@@ -1,0 +1,47 @@
+name: Load CSV and Convert to GeoJSON
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download CSV from OneDrive/SharePoint
+        run: |
+          mkdir -p data
+          curl -L "https://casuasro-my.sharepoint.com/:x:/g/personal/petr_spada_casua_cz/IQBKnD_JZuU8RL2--3HnERzuASMIXXa_GAGngN4nzjTutrE?e=x3WACw" -o data/projekty.csv
+
+      - name: Convert CSV → GeoJSON
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            ghcr.io/osgeo/gdal:latest \
+            ogr2ogr -f GeoJSON \
+              /work/data/projekty.geojson \
+              /work/data/projekty.csv \
+              -oo SEPARATOR=SEMICOLON \
+              -oo X_POSSIBLE_NAMES=Longitude \
+              -oo Y_POSSIBLE_NAMES=Latitude \
+              -oo KEEP_GEOM_COLUMNS=NO \
+              -a_srs EPSG:4326
+
+      - name: Commit CSV + GeoJSON
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          git add data/projekty.csv
+          git add data/projekty.geojson
+
+          git commit -m "Auto: CSV loaded and GeoJSON generated" || echo "No changes"
+          git push
