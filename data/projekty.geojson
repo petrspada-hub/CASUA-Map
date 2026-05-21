@@ -3,6 +3,7 @@
 "name": "projekty",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
+{"type":"Feature","properties":{"Kód projektu":"1710134_26_RUVE","Název projektu":"Nová Ruzyně","Lokace":"Praha 6 - Ruzyně","Typologie":"Bydlení","Stav":"Projekční práce","Investor":"","Team":"","Obrázek":"https://i.imgur.com/4JOw05O.png","Zahájení":"2026","Dokončení":"","Popis":""},"geometry":{"type":"Point","coordinates":[14.3110208,50.0851122]}},
 {"type":"Feature","properties":{"Kód projektu":"SCS-OLOE_2021","Název projektu":"OLOE","Lokace":"Praha 5","Typologie":"Administrativa","Stav":"Stavba","Investor":"","Team":"","Obrázek":"https://i.imgur.com/odiQdl7.jpeg","Zahájení":"","Dokončení":"","Popis":""},"geometry":{"type":"Point","coordinates":[14.4063372,50.0646719]}},
 {"type":"Feature","properties":{"Kód projektu":"CHL_2020","Název projektu":"Car Loft Holešovice","Lokace":"Praha 7 - Holešovice","Typologie":"Bydlení","Stav":"Dokončeno","Investor":"","Team":"","Obrázek":"https://i.imgur.com/H15UW26.jpeg","Zahájení":"","Dokončení":"","Popis":""},"geometry":{"type":"Point","coordinates":[14.4504186,50.1012167]}},
 {"type":"Feature","properties":{"Kód projektu":"JARE","Název projektu":"BD Jáchymovská","Lokace":"Praha-Řeporyje","Typologie":"Bydlení","Stav":"Dokončeno","Investor":"","Team":"","Obrázek":"https://i.imgur.com/v1UkUHn.jpeg","Zahájení":"","Dokončení":"","Popis":""},"geometry":{"type":"Point","coordinates":[14.317495,50.0379128]}},
